@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import sg.fp.auth.entity.UserEntity;
 
@@ -24,6 +25,20 @@ public class TokenProvider {
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
                 .setSubject(userEntity.uuidToString(userEntity.getId()))
+                .setIssuer("LikeIT")
+                .setIssuedAt(new Date())
+                .setExpiration(expiryDate)
+                .compact();
+    }
+
+    public String create(final Authentication authentication){
+        ApplicationOAuth2User userPrincipal = (ApplicationOAuth2User) authentication.getPrincipal();
+        //만료기한 : 발급시각으로부터 12시간
+        Date expiryDate = Date.from(Instant.now().plus(12, ChronoUnit.HOURS));
+
+        return Jwts.builder()
+                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .setSubject(userPrincipal.getName()) // userid
                 .setIssuer("LikeIT")
                 .setIssuedAt(new Date())
                 .setExpiration(expiryDate)
